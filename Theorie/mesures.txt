@@ -24,3 +24,5 @@ l1 = 91.74 mm
 l2 = 69.33 mm
 
 taille tot = 20,32 cm
+
+la tige donc sans la base fait pille 19 cm
