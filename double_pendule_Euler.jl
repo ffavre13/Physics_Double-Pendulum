@@ -4,21 +4,58 @@ using CSV
 using DataFrames
 using Statistics
 
+"""
+    DoublePendule
+
+Class for storing information about double pendulums.
+
+### Fields
+- `pos_x1::Float64` : x-position of the first mass at time *t* [m]
+- `pos_y1::Float64` : y-position of the first mass at time *t* [m]
+- `pos_x2::Float64` : x-position of the second mass at time *t* [m]
+- `pos_y2::Float64` : y-position of the second mass at time *t* [m]
+
+- `theta_1::Float64` : angle of the first pendulum at time *t* [rad]
+- `theta_2::Float64` : angle of the second pendulum at time *t* [rad]
+- `omega_1::Float64` : angular velocity of the first pendulum at time *t* [rad/s]
+- `omega_2::Float64` : angular velocity of the second pendulum at time *t* [rad/s]
+
+- `m1::Float64` : mass of the first pendulum [kg]
+- `m2::Float64` : mass of the second pendulum [kg]
+- `l1::Float64` : length of the first rod [m]
+- `l2::Float64` : length of the second rod [m]
+
+- `f1::Float64` : coefficient of friction at the first pivot [1/s]
+- `f2::Float64` : coefficient of friction at the second pivot [1/s]
+- `g::Float64`  : gravitational acceleration [m/s^2]
+
+- `angles_1::Vector{Float64}` : history of angle 1
+- `angles_2::Vector{Float64}` : history of angle 2
+
+- `angle_velocity_1::Vector{Float64}` : history of angle 1 velocity
+- `angle_velocity_2::Vector{Float64}` : history of angle 2 velocity
+
+- `position_x1::Vector{Float64}` : x-position history of the first mass
+- `position_y1::Vector{Float64}` : y-position history of the first mass
+
+- `position_x2::Vector{Float64}` : x-position history of the second mass
+- `position_y2::Vector{Float64}` : y-position history of the second mass
+"""
 mutable struct DoublePendule
     pos_x1::Float64
     pos_y1::Float64
     pos_x2::Float64
     pos_y2::Float64
-    theta_1::Float64 # Angle 1 au temps t
-    theta_2::Float64 # Angle 2 au temps t
-    omega_1::Float64 # vitesse angulaire de m1 au temps t
-    omega_2::Float64 # vitesse angulaire de m2 au temps t
-    m1::Float64 # masse 1
-    m2::Float64 # masse 2
-    l1::Float64 # longueur 1
-    l2::Float64 # longueur 2
-    f1::Float64 # frottement pivot 1
-    f2::Float64 # frottement pivot 2
+    theta_1::Float64
+    theta_2::Float64
+    omega_1::Float64
+    omega_2::Float64
+    m1::Float64
+    m2::Float64
+    l1::Float64
+    l2::Float64
+    f1::Float64
+    f2::Float64
     g::Float64
 
     angles_1::Vector{Float64}
@@ -34,6 +71,21 @@ mutable struct DoublePendule
     position_y2::Vector{Float64}
 end
 
+"""
+    eulerstep!(system::DoublePendule, timestep::Float64) -> Nothing
+
+Advance the state of a double pendulum by one time step using a
+euler integration scheme.
+
+### Arguments
+- `system::DoublePendule` : double pendulum system to be advanced in time
+- `timestep::Float64` : integration time step Δt [s]
+
+### Sources
+- Physical equations: 
+    - https://www.youtube.com/watch?v=SXj1P9Ra5AM 
+    - https://www.myphysicslab.com/pendulum/double-pendulum-en.html 
+"""
 function eulerstep!(system::DoublePendule, timestep::Float64)::Nothing
     old_omega_1 = copy(system.omega_1)
     old_omega_2 = copy(system.omega_2)
@@ -61,8 +113,39 @@ function eulerstep!(system::DoublePendule, timestep::Float64)::Nothing
     return nothing
 end
 
-function simulate(theta_1::Float64,theta_2::Float64, m1::Float64, m2::Float64, l1::Float64, l2::Float64, f1::Float64, f2::Float64, g::Float64, number_of_steps::Int, timestep::Float64)
-    pos_x1 = l1 * sin(theta_1)
+"""
+    simulate(theta_1, theta_2,
+             m1, m2, l1, l2, f1, f2, g,
+             number_of_steps, timestep) -> DoublePendule
+
+Simulate the time evolution of a double pendulum.
+
+### Arguments
+- `theta_1::Float64` : initial angle of the first pendulum [rad]
+- `theta_2::Float64` : initial angle of the second pendulum [rad]
+
+- `m1::Float64` : mass of the first pendulum [kg]
+- `m2::Float64` : mass of the second pendulum [kg]
+- `l1::Float64` : length of the first rod [m]
+- `l2::Float64` : length of the second rod [m]
+
+- `f1::Float64` : coefficient of friction at the first pivot [1/s]
+- `f2::Float64` : coefficient of friction at the second pivot [1/s]
+- `g::Float64`  : gravitational acceleration [m/s^2]
+
+- `number_of_steps::Int` : number of integration time steps
+- `timestep::Float64` : integration time step dt [s]
+
+### Returns
+- `DoublePendule` : simulated system containing the full time history
+"""
+function simulate(theta_1::Float64,theta_2::Float64, 
+                  m1::Float64, m2::Float64, l1::Float64, 
+                  l2::Float64, f1::Float64, f2::Float64, 
+                  g::Float64, number_of_steps::Int, 
+                  timestep::Float64)
+    
+                  pos_x1 = l1 * sin(theta_1)
     pos_y1 = -l1 * cos(theta_1)
     pos_x2 = l1 * sin(theta_1) + l2 * sin(theta_2)
     pos_y2 = -l1 * cos(theta_1) - l2 * cos(theta_2)
@@ -99,6 +182,20 @@ function simulate(theta_1::Float64,theta_2::Float64, m1::Float64, m2::Float64, l
     return system
 end
 
+"""
+    plotSystem(system, time_iteration, save) -> Plot
+
+
+This function generates a plot of the double pendulum system,
+
+### Arguments
+- `system::DoublePendule` : simulated double pendulum system
+- `time_iteration::Int` : index of the time step to display
+- `save::Bool` : if true, return the plot
+
+### Returns
+- `Plot` : a `Plots.jl` figure showing the pendulum configuration
+"""
 function plotSystem(system::DoublePendule, time_iteration::Int, save::Bool)
     if !save
         limit = 0.2
@@ -125,11 +222,35 @@ function plotSystem(system::DoublePendule, time_iteration::Int, save::Bool)
     end
 end
 
+"""
+    calc_epot(system::DoublePendule, time_iteration::Int) -> Float64
+
+Compute the potential energy of a double pendulum at a specific time step.
+
+### Arguments
+- `system::DoublePendule` : the simulated double pendulum system
+- `time_iteration::Int` : the index of the time step at which to compute the energy
+
+### Returns
+- `Float64` : total gravitational potential energy [J] at the given time step
+"""
 function calc_epot(system::DoublePendule, time_iteration::Int)
     epot = system.m1*system.g*system.position_y1[time_iteration] + system.m2*system.g*system.position_y2[time_iteration]
     return epot
 end
 
+"""
+    calc_ecin(system::DoublePendule, time_iteration::Int) -> Float64
+
+Compute the kinetic energy of a double pendulum at a specific time step.
+
+### Arguments
+- `system::DoublePendule` : the simulated double pendulum system
+- `time_iteration::Int` : the index of the time step at which to compute the energy
+
+### Returns
+- `Float64` : total kinetic energy [J] at the given time step
+"""
 function calc_ecin(system::DoublePendule, time_iteration::Int)
     v1 = system.l1 * system.angle_velocity_1[time_iteration]
     v2 = sqrt((system.l1*system.angle_velocity_1[time_iteration])^2 + (system.l2*system.angle_velocity_2[time_iteration])^2 + 2 * system.l1 * system.l2 * system.angle_velocity_1[time_iteration] * system.angle_velocity_2[time_iteration] * cos(system.angles_1[time_iteration] - system.angles_2[time_iteration])) 
@@ -137,15 +258,71 @@ function calc_ecin(system::DoublePendule, time_iteration::Int)
     return ecin
 end
 
+"""
+    calc_etot(system::DoublePendule, time_iteration::Int) -> Float64
+
+Compute the total mechanical energy of a double pendulum at a specific time step.
+
+### Arguments
+- `system::DoublePendule` : the simulated double pendulum system
+- `time_iteration::Int` : the index of the time step at which to compute the total energy
+
+### Returns
+- `Float64` : total mechanical energy [J] at the given time step
+"""
 function calc_etot(system::DoublePendule, time_iteration::Int)
     return calc_epot(system, time_iteration) + calc_ecin(system, time_iteration)
 end
 
+"""
+    NRMSE(angle_video::Vector{Float64}, angle_sim::Vector{Float64}) -> Float64
+
+Compute the normalized root mean square error (NRMSE) between simulated angles and video angles.
+
+### Arguments
+- `angle_video::Vector{Float64}` : angles from video [rad]
+- `angle_sim::Vector{Float64}` : simulated angles [rad]
+
+### Returns
+- `Float64` : normalized RMSE
+"""
 function NRMSE(angle_video::Vector{Float64}, angle_sim::Vector{Float64})
     return sqrt(mean((angle_video .- angle_sim).^2)) / std(angle_video)
 end
 
-function find_mass_factor(m_factor::Float64,angle1_video::Vector{Float64},angle2_video::Vector{Float64},angle1::Float64,angle2::Float64,l1::Float64,l2::Float64,f1::Float64,f2::Float64,g::Float64,timestep::Float64, number_of_steps::Int, number_of_frames::Int)
+"""
+    find_mass_factor(m_factor::Float64, angle1_video::Vector{Float64}, angle2_video::Vector{Float64},
+                     angle1::Float64, angle2::Float64, l1::Float64, l2::Float64, f1::Float64,
+                     f2::Float64, g::Float64, timestep::Float64, number_of_steps::Int, number_of_frames::Int)
+
+Compute a score comparing the double pendulum simulation to reference video angles for a given mass factor.
+
+### Arguments
+- `m_factor::Float64` : ratio of mass m1 to m2
+- `angle1_video::Vector{Float64}` : reference angles of the first pendulum from video [rad]
+- `angle2_video::Vector{Float64}` : reference angles of the second pendulum from video [rad]
+- `angle1::Float64` : initial angle of the first pendulum [rad]
+- `angle2::Float64` : initial angle of the second pendulum [rad]
+- `l1::Float64` : length of the first pendulum rod [m]
+- `l2::Float64` : length of the second pendulum rod [m]
+- `f1::Float64` : coefficient of friction at the first pivot [1/s]
+- `f2::Float64` : coefficient of friction at the second pivot [1/s]
+- `g::Float64` : gravitational acceleration [m/s^2]
+- `timestep::Float64` : simulation time step [s]
+- `number_of_steps::Int` : total number of simulation steps
+- `number_of_frames::Int` : number of frames to sample for error calculation
+
+### Returns
+- `score::Float64` : average NRMSE between simulation and video for both angles
+- `nrmse1::Float64` : NRMSE for angle1
+- `nrmse2::Float64` : NRMSE for angle2
+"""
+function find_mass_factor(m_factor::Float64,angle1_video::Vector{Float64},
+                          angle2_video::Vector{Float64},angle1::Float64,
+                          angle2::Float64,l1::Float64,l2::Float64,f1::Float64,
+                          f2::Float64,g::Float64,timestep::Float64, 
+                          number_of_steps::Int, number_of_frames::Int)
+
     m1 = 1.0
     m2 = m1 / m_factor
 
@@ -171,6 +348,16 @@ function find_mass_factor(m_factor::Float64,angle1_video::Vector{Float64},angle2
     return score, nrmse1, nrmse2
 end
 
+"""
+    main(display_video::Bool, display_energie::Bool, find_parameters::Bool)
+
+Run the full double pendulum simulation and optionally display video, energy plots, and optimize parameters.
+
+### Arguments
+- `display_video::Bool` : if true, creates an animation of the double pendulum
+- `display_energie::Bool` : if true, plots kinetic, potential, and total energy over time
+- `find_mass::Bool` : if true, performs parameter optimization to fit the simulation to video data
+"""
 function main(display_video::Bool, display_energie::Bool, find_mass::Bool)
     nb_secondes = 2 # [s]
     precision = 10000
