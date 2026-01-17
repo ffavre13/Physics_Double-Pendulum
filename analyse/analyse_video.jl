@@ -31,6 +31,7 @@ function detect_orange_points(frame)
     b = blue.(frame_rgb)
     
     # ~rgb(163, 78, 39) => rgb(0.64, 0.31, 0.15) 
+    # hsv
     mask = (r .> 0.50) .& (r .< 0.80) .& 
            (g .> 0.15) .& (g .< 0.45) .& 
            (b .> 0.0) .& (b .< 0.30)
@@ -119,11 +120,29 @@ function main()
         dx1 = m1[1] - pivot_x
         dy1 = m1[2] - pivot_y
 
-        angle1 = -atan(dy1, dx1) + pi/2
+        ux1 = 0
+        uy1 = 1
+
+        angle1 = acos((dx1*ux1 + dy1*uy1) / (sqrt(dx1^2+dy1^2)*sqrt(ux1^2+uy1^2)))
+
+
+        if dx1 < 0
+            angle1 = 2*pi - angle1
+        end
+
+
 
         dx2 = m2[1] - m1[1]
         dy2 = m2[2] - m1[2]
-        angle2 = -atan(dy2, dx2) + pi/2
+
+        ux2 = 0
+        uy2 = 1
+
+        angle2 = acos((dx2*ux2 + dy2*uy2) / (sqrt(dx2^2+dy2^2)*sqrt(ux2^2+uy2^2)))
+
+        if dx2 < 0
+            angle2 = 2*pi - angle2
+        end
 
         push!(angle1_list, angle1)
         push!(angle2_list, angle2)
