@@ -420,7 +420,7 @@ function main(display_video::Bool, display_energie::Bool, find_mass::Bool)
     end
 
     if display_video
-        filename = "double_pendule_Euler.mp4"
+        filename = "src/double_pendule_Euler.mp4"
 
         system = simulate(angle1, angle2, m1, m2, l1, l2,f1, f2, g, number_of_steps, timestep)
 

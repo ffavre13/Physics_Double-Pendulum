@@ -4,11 +4,6 @@
 
 ```
 📁 physics - Double pendulum
-├─ 📄 CPI_ProjetPendule.pdf             # Project informations
-├─ 📄 double_pendule_Euler.jl           # Double pendulum simulation with euler
-├─ 📄 double_pendule_Euler.mp4
-├─ 📄 double_pendule_Runge-Kutta.jl     # Double pendulum simulation with RK4
-├─ 📄 double_pendule_Runge-Kutta.mp4
 ├─ 📄 Manifest.toml
 ├─ 📄 Project.toml
 ├─ 📄 README.md
@@ -22,17 +17,31 @@
 │   ├─ 📄 find_coordonnee.jl            # Obtain the pivot coordinates in px
 │   └─ 📁 video
 │       └─ 📄 First_Video_2s.mp4        # Double pendulum real video
-└─ 📁 Theorie
-    ├─ 📄 graph.jl                      # Schema of the double pendulum
-    ├─ 📄 main.tex                      # Theory
-    ├─ 📄 Physique_Double_pendule.pdf   # Theory
-    └─ 📁 img
-        ├─ 📄 Force_m1.png
-        ├─ 📄 Force_m2.png
-        ├─ 📄 NelderMead.png
-        ├─ 📄 RK4.png
-        ├─ 📄 shema_double_pendule.jpg
-        └─ 📄 shema_double_pendule.svg
+├─ 📁 doc
+│   ├─ 📄 graph.jl                      # Schema of the double pendulum
+│   ├─ 📄 CPI_ProjetPendule.pdf         # Project informations
+│   ├─ 📄 main.tex                      # Theory
+│   ├─ 📄 Physique_Double_pendule.pdf   # Theory
+│   └─ 📁 img
+│       ├─ 📄 Force_m1.png
+│       ├─ 📄 Force_m2.png
+│       ├─ 📄 NelderMead.png
+│       ├─ 📄 RK4.png
+│       ├─ 📄 shema_double_pendule.jpg
+│       └─ 📄 shema_double_pendule.svg
+├─ 📁 results
+│   ├─ 📄 double_pendule_Runge-Kutta_comparison.mp4     # video with comparison
+│   ├─ 📄 double_pendule_Runge-Kutta_comparison.mp4     # final video
+│   ├─ 📄 E_cin-E_pot.png                               # Ecin and Epot graph
+│   ├─ 📄 E_cin.png                                     # Ecin graph
+│   ├─ 📄 E_pot.png                                     # Epot graph
+│   ├─ 📄 E_tot.png                                     # Etot graph
+│   └─ 📄 positions.png                                 # Positions graph
+└─ 📁 src
+    ├─ 📄 double_pendule_Euler.jl           # Double pendulum simulation with euler
+    ├─ 📄 double_pendule_Euler.mp4
+    ├─ 📄 double_pendule_Runge-Kutta.jl     # Double pendulum simulation with RK4
+    └─ 📄 double_pendule_Runge-Kutta.mp4
 ```
 
 # Setup

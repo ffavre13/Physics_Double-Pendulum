@@ -722,7 +722,7 @@ function main(display_video::Bool, display_energie::Bool, find_parameters::Bool)
     end
 
     if display_video
-        filename = "double_pendule_Runge-Kutta.mp4"
+        filename = "src/double_pendule_Runge-Kutta.mp4"
 
         animation = @animate for i in steps
             # plotSystem(system, i, precision)
