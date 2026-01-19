@@ -83,13 +83,9 @@ https://github.com/ffavre13/Physique_double-pendule/blob/43f762683ff04f6097e7847
 ## Video with the comparison
 https://github.com/ffavre13/Physique_double-pendule/blob/43f762683ff04f6097e784796058eed6520f3c09/results/double_pendule_Runge-Kutta_comparison.mp4
 
-<video width="400" controls>
-  <source src="results/double_pendule_Runge-Kutta_comparison.mp4" type="video/mp4">
-</video>
+https://github.com/user-attachments/assets/57bdae75-5812-4a91-a87c-984ff577ed88
 
 ## Final video with prediction
 https://github.com/ffavre13/Physique_double-pendule/blob/43f762683ff04f6097e784796058eed6520f3c09/results/double_pendule_Runge-Kutta.mp4
 
-<video width="400" controls>
-  <source src="results/double_pendule_Runge-Kutta.mp4" type="video/mp4">
-</video>
+https://github.com/user-attachments/assets/2fad8b8d-5b3b-490d-a0bd-90225783d538
