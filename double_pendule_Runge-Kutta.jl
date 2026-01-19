@@ -473,10 +473,10 @@ Display the energy evolution of a double pendulum over time using plots.
 - `number_of_steps::Int` : the number of simulation steps to display
 """
 function displayEnergie(system::DoublePendule, number_of_steps::Int)
-    display(Plots.plot(1:number_of_steps,[calc_ecin(system,i) for i in 1:number_of_steps], title="Energie cinétique", grid = false, legend = false,ylims=(0,0.15), xlabel="temps [ms]", ylabel="Energie [J]"))
-    display(Plots.plot(1:number_of_steps,[calc_epot(system,i) for i in 1:number_of_steps], title="Energie potentiel", grid = false, legend = false, label = "epot", ylims=(-0.1,0.1), xlabel="temps [s]", ylabel="Energie [J]"))
-    display(Plots.plot!(1:number_of_steps,[calc_ecin(system,i) for i in 1:number_of_steps], title="Energie cinétique + potentiel", legend = true, label = "ecin", ylims=(-0.1,0.2), xlabel="temps [s]", ylabel="Energie [J]"))
-    display(Plots.plot(1:number_of_steps,[calc_etot(system,i) for i in 1:number_of_steps], title="Energie totale", grid = false, legend = false, ylims=(-0.1,0.1), xlabel="temps [ms]", ylabel="Energie [J]"))
+    display(Plots.plot(1:number_of_steps,[calc_ecin(system,i) for i in 1:number_of_steps], title="Energie cinétique", grid = false, legend = false, xlabel="temps [ms]", ylabel="Energie [J]"))
+    display(Plots.plot(1:number_of_steps,[calc_epot(system,i) for i in 1:number_of_steps], title="Energie potentiel", grid = false, legend = false, label = "epot", xlabel="temps [s]", ylabel="Energie [J]"))
+    display(Plots.plot!(1:number_of_steps,[calc_ecin(system,i) for i in 1:number_of_steps], title="Energie cinétique + potentiel", legend = true, label = "ecin", xlabel="temps [s]", ylabel="Energie [J]"))
+    display(Plots.plot(1:number_of_steps,[calc_etot(system,i) for i in 1:number_of_steps], title="Energie totale", grid = false, legend = false, xlabel="temps [ms]", ylabel="Energie [J]"))
 end
 
 #endregion
@@ -687,7 +687,7 @@ function main(display_video::Bool, display_energie::Bool, find_parameters::Bool)
     f2 = 0.10411220830369879 # [s^-1]
     g = 9.81
 
-    m_factor = 3.33453178610527 #
+    m_factor = 3.33453178610527
     m1 = 1.0
     m2 = m1/m_factor
 
@@ -735,4 +735,4 @@ function main(display_video::Bool, display_energie::Bool, find_parameters::Bool)
 end
 
 # display_video, display_energie, find_parameters
-main(false, false, false)
+main(true, false, false)
