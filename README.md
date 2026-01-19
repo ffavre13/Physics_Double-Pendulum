@@ -58,25 +58,25 @@ instantiate
 
 # Final results
 ## Ecin
-https://github.com/ffavre13/Physique_double-pendule/blob/290c68e16b87fd67f8f3b42d2972195610c0b3a0/results/E_cin.png
+https://github.com/ffavre13/Physique_double-pendule/blob/43f762683ff04f6097e784796058eed6520f3c09/results/E_cin.png
 
 ## Epot
-https://github.com/ffavre13/Physique_double-pendule/blob/290c68e16b87fd67f8f3b42d2972195610c0b3a0/results/E_pot.png
+https://github.com/ffavre13/Physique_double-pendule/blob/43f762683ff04f6097e784796058eed6520f3c09/results/E_pot.png
 
 ## Ecin & Epot
-https://github.com/ffavre13/Physique_double-pendule/blob/290c68e16b87fd67f8f3b42d2972195610c0b3a0/results/E_cin-E_pot.png
+https://github.com/ffavre13/Physique_double-pendule/blob/43f762683ff04f6097e784796058eed6520f3c09/results/E_cin-E_pot.png
 
 ## Etot
-https://github.com/ffavre13/Physique_double-pendule/blob/290c68e16b87fd67f8f3b42d2972195610c0b3a0/results/E_tot.png
+https://github.com/ffavre13/Physique_double-pendule/blob/43f762683ff04f6097e784796058eed6520f3c09/results/E_tot.png
 
 ## positions
-https://github.com/ffavre13/Physique_double-pendule/blob/290c68e16b87fd67f8f3b42d2972195610c0b3a0/results/positions.png
+https://github.com/ffavre13/Physique_double-pendule/blob/43f762683ff04f6097e784796058eed6520f3c09/results/positions.png
 
 ## error with NRMSE
 - 0.24982410228574903
 
 ## Video with the comparison
-https://github.com/ffavre13/Physique_double-pendule/blob/290c68e16b87fd67f8f3b42d2972195610c0b3a0/results/double_pendule_Runge-Kutta_comparison.mp4
+https://github.com/ffavre13/Physique_double-pendule/blob/43f762683ff04f6097e784796058eed6520f3c09/results/double_pendule_Runge-Kutta_comparison.mp4
 
 ## Final video with prediction
-https://github.com/ffavre13/Physique_double-pendule/blob/290c68e16b87fd67f8f3b42d2972195610c0b3a0/results/double_pendule_Runge-Kutta.mp4
+https://github.com/ffavre13/Physique_double-pendule/blob/43f762683ff04f6097e784796058eed6520f3c09/results/double_pendule_Runge-Kutta.mp4
