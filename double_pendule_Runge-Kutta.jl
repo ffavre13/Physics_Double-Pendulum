@@ -486,24 +486,168 @@ end
 """
     NRMSE(angle_video::Vector{Float64}, angle_sim::Vector{Float64}) -> Float64
 
-Compute the normalized root mean square error (NRMSE) between simulated angles and video angles.
+Compute the normalized root mean square error (NRMSE) between simulated parameters and video parameters.
 
 ### Arguments
-- `angle_video::Vector{Float64}` : angles from video [rad]
-- `angle_sim::Vector{Float64}` : simulated angles [rad]
+- `param_video::Vector{Float64}` : parameters from video
+- `param_sim::Vector{Float64}` : simulated parameters
 
 ### Returns
 - `Float64` : normalized RMSE
 """
-function NRMSE(angle_video::Vector{Float64}, angle_sim::Vector{Float64})
-    error = deg2rad(0.5)
+function NRMSE(param_video::Vector{Float64}, param_sim::Vector{Float64})
+    error = 0.005
 
-    diff = abs.(angle_video .- angle_sim) .- error
+    diff = abs.(param_video .- param_sim) .- error
 
     diff = max.(diff, 0.0)  
 
-    return sqrt(mean(diff.^2)) / std(angle_video)
+    return sqrt(mean(diff.^2)) / std(param_video)
 end
+
+"""
+    multistart_optimize(loss, lower, upper, n_starts)
+
+Performs a multi-start optimization strategy for finding global minimum.
+
+### Arguments
+- `loss::Function` : Objective function to minimize.
+- `lower::Vector{Float64}` : Lower bounds for the parameters.
+- `upper::Vector{Float64}` : Upper bounds for the parameters.
+- `n_starts::Int` : Number of independent optimization runs.
+
+### Returns
+- `best_p::Vector{Float64}` : Parameter vector with the smallest value found.
+- `best_loss::Float64` : Minimum error value.
+"""
+function multistart_optimize(loss::Function, lower::Vector{Float64}, upper::Vector{Float64},
+                             n_starts::Int)
+
+    best_loss = Inf
+    best_p = nothing
+
+    for i in 1:n_starts
+        p0 = lower .+ rand(length(lower)) .* (upper .- lower)
+
+        result = optimize(loss, lower, upper, p0, Fminbox(NelderMead()))
+
+        current_loss = Optim.minimum(result)
+
+        if current_loss < best_loss
+            best_loss = current_loss
+            best_p = Optim.minimizer(result)
+        end
+    end
+
+    return best_p, best_loss
+end
+
+"""
+    findParameters(m_factor::Float64, l1::Float64, l2::Float64,
+                   f1::Float64, f2::Float64, g::Float64,
+                   number_of_steps::Int, timestep::Float64,
+                   positions_x1_video::Vector{Float64},
+                   positions_y1_video::Vector{Float64},
+                   positions_x2_video::Vector{Float64},
+                   positions_y2_video::Vector{Float64},
+                   number_of_frames::Int, precision::Int)
+
+Estimate initial conditions and physical parameters of a double pendulum
+by fitting simulated trajectories to video-based position data.
+
+### Arguments
+- `m1::Float64` : mass of the first pendulum [kg]
+- `m2::Float64` : mass of the second pendulum [kg]
+- `l1::Float64` : length of the first rod [m]
+- `l2::Float64` : length of the second rod [m]
+- `f1::Float64` : coefficient of friction at the first pivot [1/s]
+- `f2::Float64` : coefficient of friction at the second pivot [1/s]
+- `g::Float64`  : gravitational acceleration [m/s^2]
+- `number_of_steps::Int` : number of integration time steps
+- `timestep::Float64` : integration time step dt [s]
+
+- `positions_x1_video::Vector{Float64}` : x-coordinates of mass 1 from video
+- `positions_y1_video::Vector{Float64}` : y-coordinates of mass 1 from video
+- `positions_x2_video::Vector{Float64}` : x-coordinates of mass 2 from video
+- `positions_y2_video::Vector{Float64}` : y-coordinates of mass 2 from video
+
+- `number_of_frames::Int` : Number of video frames.
+- `precision::Int` : steps per second for simulation.
+"""
+function findParameters(m_factor::Float64, l1::Float64, l2::Float64, f1::Float64, f2::Float64, g::Float64, 
+                        number_of_steps::Int, timestep::Float64, positions_x1_video::Vector{Float64},
+                        positions_y1_video::Vector{Float64},positions_x2_video::Vector{Float64},
+                        positions_y2_video::Vector{Float64}, number_of_frames::Int, precision::Int)
+
+
+    number_of_frames = 50
+
+    # angle1, angle2, omega_1, omega_2
+    lower_init = [pi, pi, 0.0, 0.0]
+    upper_init = [pi + deg2rad(5.0), pi + deg2rad(10.0), 0.1, 0.1]
+
+    function loss_init(p)
+        angle1, angle2, omega_1, omega_2 = p
+
+        system = simulate(angle1, angle2, omega_1, omega_2, 1.0, 1.0/m_factor, l1, l2, f1, f2, g, number_of_steps, timestep)
+        
+        step = round(Int, 0.01 / timestep)
+        x1_sim = system.position_x1[1:step:end][1:number_of_frames]
+        y1_sim = system.position_y1[1:step:end][1:number_of_frames]
+        x2_sim = system.position_x2[1:step:end][1:number_of_frames]
+        y2_sim = system.position_y2[1:step:end][1:number_of_frames]
+        
+        e1 = NRMSE(positions_x1_video[1:number_of_frames], x1_sim)
+        e2 = NRMSE(positions_y1_video[1:number_of_frames], y1_sim)
+        e3 = NRMSE(positions_x2_video[1:number_of_frames], x2_sim)
+        e4 = NRMSE(positions_y2_video[1:number_of_frames], y2_sim)
+        
+        return (e1 + e2 + e3 + e4)/4
+    end
+
+    p_init, loss_init_min = multistart_optimize(loss_init,lower_init,upper_init,10000)
+
+    angle1, angle2, omega_1, omega_2 = p_init
+
+    println("inti parameters: ", p_init)
+    println("error: ", loss_init_min)
+
+    number_of_frames = 200
+    
+    # f1, f2, m_factor
+    lower_global = [0.0, 0.0, 2.0]
+    upper_global = [0.2, 0.2, 10.0]
+
+    function loss_global(p)
+        f1, f2, m_factor = p
+        system = simulate(angle1, angle2, omega_1, omega_2, 1.0, 1.0/m_factor, l1, l2, f1, f2, g, number_of_steps, timestep)
+        
+        step = round(Int, 0.01 / timestep)
+        x1_sim = system.position_x1[1:step:end][1:number_of_frames]
+        y1_sim = system.position_y1[1:step:end][1:number_of_frames]
+        x2_sim = system.position_x2[1:step:end][1:number_of_frames]
+        y2_sim = system.position_y2[1:step:end][1:number_of_frames]
+        
+        e1 = NRMSE(positions_x1_video[1:number_of_frames], x1_sim)
+        e2 = NRMSE(positions_y1_video[1:number_of_frames], y1_sim)
+        e3 = NRMSE(positions_x2_video[1:number_of_frames], x2_sim)
+        e4 = NRMSE(positions_y2_video[1:number_of_frames], y2_sim)
+        
+        return (e1 + e2 + e3 + e4)/4
+    end
+
+    p_global, loss_global_min = multistart_optimize(loss_global,lower_global,upper_global,10000)
+
+    f1, f2, m_factor = p_global
+
+    println("global parameters: ", p_global)
+    println("error: ", loss_global_min)
+
+    system = simulate(angle1, angle2, omega_1, omega_2, 1.0, 1.0/m_factor, l1, l2,f1, f2, g, number_of_steps, timestep)
+
+    plotSystemPositions(system, precision, positions_x1_video, positions_y1_video, positions_x2_video, positions_y2_video)
+end
+
 #endregion
 
 #region Main
@@ -514,9 +658,9 @@ end
 Run the full double pendulum simulation and optionally display video, energy plots, and optimize parameters.
 
 ### Arguments
-- `display_video::Bool` : if true, creates an animation of the double pendulum
-- `display_energie::Bool` : if true, plots kinetic, potential, and total energy over time
-- `find_parameters::Bool` : if true, performs parameter optimization to fit the simulation to video data
+- `display_video::Bool` : if true creates an animation of the double pendulum
+- `display_energie::Bool` : if true plots kinetic, potential, and total energy over time
+- `find_parameters::Bool` : if true performs parameter optimization to fit the simulation to video data
 """
 function main(display_video::Bool, display_energie::Bool, find_parameters::Bool)
     nb_secondes = 2 # [s]
@@ -531,25 +675,25 @@ function main(display_video::Bool, display_energie::Bool, find_parameters::Bool)
     pb = Progress(length(steps))
 
     # Parameters
-    angle1 = Float64(3.1686318134763938) # [rad]
-    angle2 = Float64(3.237188742291009) # [rad]
-    omega_1 = 0.0 # [m*s^-1] velocity
-    omega_2 = 0.061 # [m*s^-1] velocity
+    angle1 = Float64(3.18974126755461) # [rad]
+    angle2 = Float64(3.314424486768122) # [rad]
+    omega_1 = 0.07631706876051128 # [m*s^-1] velocity
+    omega_2 = 0.05753964736863004 # [m*s^-1] velocity
     m1 = 0.021 # [kg]
     m2 = 0.0028 # [kg]
     l1 = 0.09174 # [m]
     l2 = 0.06933 # [m]
-    f1 = 3.211948814733922e-5 # 0.15 [s^-1]
-    f2 = 6.133546094892238e-6 # 0.15 [s^-1]
+    f1 = 0.06368981052612338 # [s^-1]
+    f2 = 0.10411220830369879 # [s^-1]
     g = 9.81
 
-    m_factor = 6.857892359965417
+    m_factor = 3.33453178610527 #
     m1 = 1.0
     m2 = m1/m_factor
 
     # Video
     df = CSV.read("./analyse/angles.csv", DataFrame)
-    number_of_frames = 20
+    number_of_frames = 200
 
     angles1_video = Vector{Float64}(df.angle1)
     angles2_video = Vector{Float64}(df.angle2)
@@ -563,6 +707,7 @@ function main(display_video::Bool, display_energie::Bool, find_parameters::Bool)
     # Simulate
     system = simulate(angle1, angle2, omega_1, omega_2, m1, m2, l1, l2,f1, f2, g, number_of_steps, timestep)
 
+    # Compare position
     plotSystemPositions(system, precision, positions_x1_video, positions_y1_video, positions_x2_video, positions_y2_video)
 
     if display_video
@@ -583,63 +728,11 @@ function main(display_video::Bool, display_energie::Bool, find_parameters::Bool)
     end
 
     if find_parameters
-        
-        p0_init = [angle1, angle2, omega_1, omega_2]
-        lower_init = [pi, pi, -0.1, -0.1]
-        upper_init = [pi + pi/4, pi + pi/4, 0.1, 0.1]
-
-        function loss_init(p)
-            theta_1, theta_2, omega_1, omega_2 = p
-
-            system = simulate(theta_1, theta_2, omega_1, omega_2, 1.0, 1.0/m_factor, l1, l2, f1, f2, g, number_of_steps, timestep)
-            
-            step = round(Int, 0.01 / timestep)
-            angle1_sim = system.angles_1[1:step:end][1:number_of_frames]
-            angle2_sim = system.angles_2[1:step:end][1:number_of_frames]
-            
-            e1 = NRMSE(angles1_video[1:number_of_frames], angle1_sim)
-            e2 = NRMSE(angles2_video[1:number_of_frames], angle2_sim)
-            
-            return (e1 + e2)/2
-        end
-
-        result_init = optimize(loss_init, lower_init, upper_init, p0_init, Fminbox(NelderMead()))
-        p_init = Optim.minimizer(result_init)
-
-        angle1, angle2, omega_1, omega_2 = p_init
-        println("Phase 1 : conditions initiales optimisées -> ", p_init)
-        
-        p0_global = [f1, f2, m_factor]
-        lower_global = [0.0, 0.0, 2.0]
-        upper_global = [0.3, 0.3, 10.0]
-
-        function loss_global(p)
-            f1_opt, f2_opt, m_factor_opt = p
-            system = simulate(angle1, angle2, omega_1, omega_2, 1.0, 1.0/m_factor_opt, l1, l2, f1_opt, f2_opt, g, number_of_steps, timestep)
-            
-            step = round(Int, 0.01 / timestep)
-            angle1_sim = system.angles_1[1:step:end][1:number_of_frames]
-            angle2_sim = system.angles_2[1:step:end][1:number_of_frames]
-            
-            e1 = NRMSE(angles1_video[1:number_of_frames], angle1_sim)
-            e2 = NRMSE(angles2_video[1:number_of_frames], angle2_sim)
-            
-            return (e1 + e2)/2
-        end
-
-        result_global = optimize(loss_global, lower_global, upper_global, p0_global, Fminbox(NelderMead()))
-        f1, f2, m_factor = Optim.minimizer(result_global)
-
-        println("Phase 2 : paramètres globaux optimisés -> ", f1, " ", f2, " ", m_factor)
-        println("Erreur finale = ", Optim.minimum(result_global))
-
-        system = simulate(angle1, angle2, omega_1, omega_2, 1.0, 1.0/m_factor, l1, l2,f1, f2, g, number_of_steps, timestep)
-
-        plotSystemPositions(system, precision, positions_x1_video, positions_y1_video, positions_x2_video, positions_y2_video)
+        findParameters(m_factor, l1, l2, f1, f2, g, number_of_steps, timestep,
+                       positions_x1_video,positions_y1_video,positions_x2_video,
+                       positions_y2_video, number_of_frames, precision)
     end
 end
 
 # display_video, display_energie, find_parameters
-main(false, false, true)
-
-#endregion
+main(false, false, false)

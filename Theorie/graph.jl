@@ -1,6 +1,15 @@
 using LaTeXStrings
 using Plots
 
+"""
+    show_pendule_graph(pos1, pos2)
+
+Draw a schema of the double pendulum
+
+### Arguments
+- `pos1` : position of m1
+- `pos2` : position of m2
+"""
 function show_pendule_graph(pos1, pos2)
     size = 20
     Plots.plot(xlims=(-2, size), ylims=(-size,2), legend = false, axis=false, grid=false)
@@ -19,8 +28,6 @@ function show_pendule_graph(pos1, pos2)
     Plots.annotate!(pos1[1]/6, pos1[2]/3,text(L"\theta_1", 12, color=:orange))
     Plots.plot!([pos1[1], pos1[1]], [pos1[2], -size], linestyle=:dot, color=:red)
     Plots.annotate!(pos1[1]+1, pos1[2]-2,text(L"\theta_2", 12, color=:orange))
-
-
 end
 
 show_pendule_graph((4,-10),(12,-15))

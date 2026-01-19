@@ -23,6 +23,17 @@ pivot_y = 934
 
 FPS = 100
 
+"""
+    detect_orange_points(frame) -> mask
+
+This function detects masses on a double pendulum.
+
+### Arguments
+- `frame` : A frame of the video
+
+### Returns
+- `mask` : The result is a Boolean mask of the same size as the image: true for pixels considered orange, false otherwise.
+"""
 function detect_orange_points(frame)
     frame_rgb = RGB.(frame)
     
@@ -31,7 +42,6 @@ function detect_orange_points(frame)
     b = blue.(frame_rgb)
     
     # ~rgb(163, 78, 39) => rgb(0.64, 0.31, 0.15) 
-    # hsv
     mask = (r .> 0.50) .& (r .< 0.80) .& 
            (g .> 0.15) .& (g .< 0.45) .& 
            (b .> 0.0) .& (b .< 0.30)
@@ -39,6 +49,17 @@ function detect_orange_points(frame)
     return mask
 end
 
+"""
+    find_mass_center(mask) -> centers
+
+This function find the centers of m1 and m2
+
+### Arguments
+- `mask` : mask of the same size as the image: true for pixels considered orange, false otherwise.
+
+### Returns
+- `centers` : Centers of m1 and m2
+"""
 function find_mass_center(mask)
     labels = label_components(mask)
     centers = []
@@ -56,6 +77,21 @@ function find_mass_center(mask)
     return centers
 end
 
+"""
+    identify_mass(pos1, pos2, pivot, l1_px) -> m1,m2
+
+This function identify m1 and m2
+
+### Arguments
+- `pos1` : position of the first mass
+- `pos2` : position of the second mass
+- `pivot` : pivot position
+- `l1_px` : l1 rod size in px 
+
+### Returns
+- `m1` : Center of mass m1
+- `m2` : Center of mass m2
+"""
 function identify_mass(pos1, pos2, pivot, l1_px)
     d1 = sqrt((pos1[1] - pivot[1])^2 + (pos1[2] - pivot[2])^2)
     d2 = sqrt((pos2[1] - pivot[1])^2 + (pos2[2] - pivot[2])^2)
@@ -74,6 +110,23 @@ function identify_mass(pos1, pos2, pivot, l1_px)
     return m1, m2
 end
 
+"""
+    plotSystem(system, time_iteration, precision) -> Plot
+
+
+This function generates a plot of the double pendulum system,
+
+### Arguments
+- `angle1_list` : Video angle 1
+- `angle2_list` : Video angle 2
+- `l1::Float64` : first rod of the double pendulum 
+- `l2::Float64` : second rod of the double pendulum
+- `time_iteration::Int` : index of the time step to display
+- `save::Bool` : Return the plot
+
+### Returns
+- `Plot` : a `Plots.jl` figure showing the pendulum configuration
+"""
 function plotSystem(angle1_list, angle2_list, l1::Float64, l2::Float64, time_iteration::Int, save::Bool)
     x1 = l1 * sin(angle1_list[time_iteration])
     y1 = -l1 * cos(angle1_list[time_iteration])
@@ -102,6 +155,11 @@ function plotSystem(angle1_list, angle2_list, l1::Float64, l2::Float64, time_ite
     end
 end
 
+"""
+    main()
+
+This function analyse a video of a double pendulum and return the position of m1 and m2 at each frame
+"""
 function main()
     video = VideoIO.openvideo(video_path)
     angle1_list = []
@@ -112,11 +170,12 @@ function main()
         mask = detect_orange_points(frame)
 
         centers = find_mass_center(mask)
-
         pos1, pos2 = centers
+
         pivot = (pivot_x,pivot_y)
         m1, m2 = identify_mass(pos1, pos2, pivot,l1_px)
 
+        # Calculate angle 1
         dx1 = m1[1] - pivot_x
         dy1 = m1[2] - pivot_y
 
@@ -125,13 +184,11 @@ function main()
 
         angle1 = acos((dx1*ux1 + dy1*uy1) / (sqrt(dx1^2+dy1^2)*sqrt(ux1^2+uy1^2)))
 
-
         if dx1 < 0
             angle1 = 2*pi - angle1
         end
 
-
-
+        # Calculate angle 2
         dx2 = m2[1] - m1[1]
         dy2 = m2[2] - m1[2]
 
@@ -144,13 +201,18 @@ function main()
             angle2 = 2*pi - angle2
         end
 
+        # Save angle 1 and angle 2
         push!(angle1_list, angle1)
         push!(angle2_list, angle2)
     end
 
+    # Save angles
+
     df = DataFrame(frame=1:nframes, angle1=angle1_list, angle2=angle2_list)
 
     CSV.write("./analyse/angles.csv", df)
+
+    # Generate the double pendulum animation
 
     animation = @animate for i in 1:1:nframes
         plotSystem(angle1_list, angle2_list, l1, l2, i, false)
