@@ -237,7 +237,9 @@ function simulate(theta_1::Float64,theta_2::Float64,omega_1::Float64,
                   l2::Float64, f1::Float64, f2::Float64, g::Float64, 
                   number_of_steps::Int, timestep::Float64)
     
-    
+    # Check that the mass are greater than 0 kg
+    @assert m1 > 0.0
+    @assert m2 > 0.0
 
     pos_x1 = l1 * sin(theta_1)
     pos_y1 = -l1 * cos(theta_1)
@@ -273,6 +275,13 @@ function simulate(theta_1::Float64,theta_2::Float64,omega_1::Float64,
 
         system.position_x2[t] = system.pos_x2
         system.position_y2[t] = system.pos_y2
+
+        l1_size = round(sqrt(system.pos_x1^2 + system.pos_y1^2),digits=5)
+        l2_size = round(sqrt((system.pos_x2-system.pos_x1)^2 + (system.pos_y2-system.pos_y1)^2),digits=5)
+
+        # Check that when we simulate, l1 and l2 didn't change
+        @assert l1 == l1_size
+        @assert l2 == l2_size
     end
 
     return system
@@ -708,7 +717,9 @@ function main(display_video::Bool, display_energie::Bool, find_parameters::Bool)
     system = simulate(angle1, angle2, omega_1, omega_2, m1, m2, l1, l2,f1, f2, g, number_of_steps, timestep)
 
     # Compare position
-    plotSystemPositions(system, precision, positions_x1_video, positions_y1_video, positions_x2_video, positions_y2_video)
+    if nb_secondes == 2
+        plotSystemPositions(system, precision, positions_x1_video, positions_y1_video, positions_x2_video, positions_y2_video)
+    end
 
     if display_video
         filename = "double_pendule_Runge-Kutta.mp4"
