@@ -56,6 +56,8 @@ julia
 activate .
 # Download all dependencies
 instantiate
+# Run the simulation
+julia ./src/double_pendule_Runge-Kutta.jl
 ```
 
 # Parameter measurement
