@@ -75,7 +75,7 @@ https://github.com/ffavre13/Physique_double-pendule/blob/43f762683ff04f6097e7847
 
 ## positions
 https://github.com/ffavre13/Physique_double-pendule/blob/43f762683ff04f6097e784796058eed6520f3c09/results/positions.png
-![Positions]()
+![Positions](results/positions.png)
 
 ## error with NRMSE
 - 0.24982410228574903
